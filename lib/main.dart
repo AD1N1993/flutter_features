@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lazy_load/global_key_share_example.dart';
+import 'package:lazy_load/page_storage_key_scroll.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
             child: Directionality(
               textDirection: TextDirection.ltr,
               child: Center(
-                child: GlobalKeyShareExample(),
+                child: PageStorageKeyScrollExample(),
               ),
             ),
           ),

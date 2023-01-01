@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 final _key = GlobalKey();
-final globalKey = GlobalKey();
 
 class GlobalKeyShareExample extends StatelessWidget {
   const GlobalKeyShareExample({super.key});
@@ -20,7 +19,7 @@ class GlobalKeyShareExample extends StatelessWidget {
           case 1:
             return Container(
               color: Colors.blue[100],
-              child: Text("Blank Page"),
+              child: const Text("Blank Page"),
             );
           case 2:
             return Container(
@@ -39,7 +38,7 @@ class Foo extends StatefulWidget {
   @override
   _FooState createState() => _FooState();
 
-  Foo(key) : super(key: key);
+  const Foo(key) : super(key: key);
 }
 
 class _FooState extends State<Foo> {
