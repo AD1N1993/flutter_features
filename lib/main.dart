@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lazy_load/global_key_example.dart';
 import 'package:lazy_load/local_key_example.dart';
 import 'package:lazy_load/reorder_example.dart';
 
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
             child: Directionality(
               textDirection: TextDirection.ltr,
               child: Center(
-                child: ReorderableExample(),
+                child: GlobalKeyExample(),
               ),
             ),
           ),
