@@ -8,86 +8,130 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        color: Colors.blue,
-        child: CustomMultiChildLayout(
-          delegate: OwnCustomMultiChildLayoutDelegate(),
-          children: [
-            LayoutId(
-                id: 1,
-                child: Text(
-                  "Left",
-                  textDirection: TextDirection.ltr,
-                )),
-            LayoutId(
-                id: 2,
-                child: Text(
-                  "Center 123123123 123 123",
-                  textDirection: TextDirection.ltr,
-                )),
-            LayoutId(
-                id: 3,
-                child: Text(
-                  "Right12312312312312123",
-                  textDirection: TextDirection.ltr,
-                )),
-          ],
-        ),
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(child: DataOwnerStateful()),
       ),
     );
   }
 }
 
-class OwnCustomMultiChildLayoutDelegate extends MultiChildLayoutDelegate {
+class DataOwnerStateful extends StatefulWidget {
+  const DataOwnerStateful({Key? key}) : super(key: key);
+
   @override
-  Size getSize(BoxConstraints constraints) {
-    return Size(constraints.biggest.width, 100);
+  State<DataOwnerStateful> createState() => _DataOwnerStatefulState();
+}
+
+class _DataOwnerStatefulState extends State<DataOwnerStateful> {
+  var _valueOne = 0;
+  var _valueTwo = 0;
+
+  void _incOne() {
+    _valueOne += 1;
+    setState(() {});
+  }
+
+  void _incTwo() {
+    _valueTwo += 1;
+    setState(() {});
   }
 
   @override
-  void performLayout(Size size) {
-    if (hasChild(1) && hasChild(2) && hasChild(3)) {
-      const minOtherElementsWidth = 50;
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+            onPressed: _incOne, child: const Text('Inc first counter')),
+        ElevatedButton(
+            onPressed: _incTwo, child: const Text('Inc second counter')),
+        DataProviderInherit(
+            valueOne: _valueOne,
+            valueTwo: _valueTwo,
+            child: const DataConsumerStateless())
+      ],
+    );
+  }
+}
 
-      final firstElementMaxWidth = size.width - minOtherElementsWidth * 2;
-      final firstElementSize = layoutChild(
-          1, BoxConstraints.loose(Size(firstElementMaxWidth, size.height)));
+class DataConsumerStateless extends StatelessWidget {
+  const DataConsumerStateless({Key? key}) : super(key: key);
 
-      final thirdElementMaxWidth =
-          size.width - firstElementSize.width - minOtherElementsWidth;
+  @override
+  Widget build(BuildContext context) {
+    final contextValue = context
+            .dependOnInheritedWidgetOfExactType<DataProviderInherit>()
+            ?.valueOne ??
+        0;
 
-      final thirdElementSize = layoutChild(
-          3, BoxConstraints.loose(Size(thirdElementMaxWidth, size.height)));
+    // findAncestorStateOfType<_DataOwnerStatefulState>()?._value ?? 0;
+    return Column(
+      children: [
+        Text('$contextValue'),
+        const DataConsumerStateful(),
+      ],
+    );
+  }
+}
 
-      final secondElementMaxWidth =
-          size.width - firstElementSize.width - thirdElementSize.width;
+class DataConsumerStateful extends StatefulWidget {
+  const DataConsumerStateful({Key? key}) : super(key: key);
 
-      final secondElementSize = layoutChild(
-          2, BoxConstraints.loose(Size(secondElementMaxWidth, size.height)));
+  @override
+  State<DataConsumerStateful> createState() => _DataConsumerStatefulState();
+}
 
-      final firstElementOffsetY = size.height / 2 - firstElementSize.height / 2;
-      positionChild(1, Offset(0, firstElementOffsetY));
-
-      final thirdElementOffsetY = size.height / 2 - thirdElementSize.height / 2;
-      final thirdElementOffsetX = size.width - thirdElementSize.width;
-      positionChild(3, Offset(thirdElementOffsetX, thirdElementOffsetY));
-
-      final secondElementOffsetY =
-          size.height / 2 - secondElementSize.height / 2;
-      var secondElementOffsetX = size.width / 2 - secondElementSize.width / 2;
-      if (firstElementSize.width > secondElementOffsetX) {
-        secondElementOffsetX = firstElementSize.width;
-      } else if (thirdElementOffsetX <
-          secondElementOffsetX + secondElementSize.width) {
-        secondElementOffsetX = thirdElementOffsetX - secondElementSize.width;
-      }
-      positionChild(2, Offset(secondElementOffsetX, secondElementOffsetY));
+class _DataConsumerStatefulState extends State<DataConsumerStateful> {
+  @override
+  Widget build(BuildContext context) {
+    final inheritElement =
+        context.getElementForInheritedWidgetOfExactType<DataProviderInherit>();
+    if (inheritElement != null) {
+      context.dependOnInheritedElement(inheritElement);
     }
+
+    final widget = inheritElement?.widget as DataProviderInherit;
+    final contextValue = widget.valueTwo;
+
+    /*final contextValue =
+        context.findAncestorStateOfType<_DataOwnerStatefulState>()?._value ?? 0;*/
+    return Text('$contextValue');
+  }
+}
+
+/*T? getInherit<T>(BuildContext context) {
+  final inheritElement = context.getElementForInheritedWidgetOfExactType<T>();
+
+  final widget = inheritElement?.widget as DataProviderInherit;
+
+  if (widget is T) {
+    return widget as T;
+  } else {
+    return null;
+  }
+}*/
+
+class DataProviderInherit extends InheritedWidget {
+  final int valueOne;
+  final int valueTwo;
+
+  const DataProviderInherit({
+    super.key,
+    required super.child,
+    required this.valueOne,
+    required this.valueTwo,
+  });
+
+  static DataProviderInherit of(BuildContext context) {
+    final DataProviderInherit? result =
+        context.dependOnInheritedWidgetOfExactType<DataProviderInherit>();
+    assert(result != null, 'No DataProviderInherit found in context');
+    return result!;
   }
 
   @override
-  bool shouldRelayout(covariant MultiChildLayoutDelegate oldDelegate) {
-    return true;
+  bool updateShouldNotify(DataProviderInherit old) {
+    return valueOne != old.valueOne || valueTwo != old.valueTwo;
   }
 }
