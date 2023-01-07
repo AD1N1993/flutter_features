@@ -60,8 +60,10 @@ class DataConsumerStateless extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('DataConsumerStateless');
     final contextValue = context
-            .dependOnInheritedWidgetOfExactType<DataProviderInherit>()
+            .dependOnInheritedWidgetOfExactType<DataProviderInherit>(
+                aspect: 'one')
             ?.valueOne ??
         0;
 
@@ -85,10 +87,11 @@ class DataConsumerStateful extends StatefulWidget {
 class _DataConsumerStatefulState extends State<DataConsumerStateful> {
   @override
   Widget build(BuildContext context) {
+    print('DataConsumerStateful');
     final inheritElement =
         context.getElementForInheritedWidgetOfExactType<DataProviderInherit>();
     if (inheritElement != null) {
-      context.dependOnInheritedElement(inheritElement);
+      context.dependOnInheritedElement(inheritElement, aspect: 'two');
     }
 
     final widget = inheritElement?.widget as DataProviderInherit;
@@ -112,7 +115,7 @@ class _DataConsumerStatefulState extends State<DataConsumerStateful> {
   }
 }*/
 
-class DataProviderInherit extends InheritedWidget {
+class DataProviderInherit extends InheritedModel<String> {
   final int valueOne;
   final int valueTwo;
 
@@ -123,15 +126,20 @@ class DataProviderInherit extends InheritedWidget {
     required this.valueTwo,
   });
 
-  static DataProviderInherit of(BuildContext context) {
-    final DataProviderInherit? result =
-        context.dependOnInheritedWidgetOfExactType<DataProviderInherit>();
-    assert(result != null, 'No DataProviderInherit found in context');
-    return result!;
-  }
-
   @override
   bool updateShouldNotify(DataProviderInherit old) {
     return valueOne != old.valueOne || valueTwo != old.valueTwo;
+  }
+
+  @override
+  bool updateShouldNotifyDependent(
+      covariant DataProviderInherit oldWidget, Set<String> dependencies) {
+    final isValueOneUpdated =
+        valueOne != oldWidget.valueOne && dependencies.contains('one');
+
+    final isValueTwoUpdated =
+        valueTwo != oldWidget.valueTwo && dependencies.contains('two');
+
+    return isValueOneUpdated || isValueTwoUpdated;
   }
 }
